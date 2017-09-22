@@ -1,17 +1,17 @@
-﻿param
+param
 (
-    [parameter(mandatory=$true)][string]$CSVPath = ".\Nodes.csv",
+    [parameter(mandatory=$true)][string]$CSVPath = $(".\Nodes.csv"), #Put the csv file in the same directory as this script
     [parameter(mandatory=$false)][Boolean]$HealthCheck = $True,
-    [parameter(mandatory=$false)][switch]$TestHash
+    [parameter(mandatory=$false)][switch]$TestHash # NOTE: This function actually uses one of your credits!
 )
 
 Function Write-TNTTestHash {
     $JSON = @{
-    "hashes" = [array]"1957db7fe23e4be1740ddeb941ddda7ae0a6b782e536a9e00b5aa82db1e84547"
-    } | ConvertTo-Json
+    "hashes" = [array]"1957db7fe23e4be1740ddeb941ddda7ae0a6b782e536a9e00b5aa82db1e84547" # Example hash as used on the Chainpoint API guide
+    } | ConvertTo-Json # ConvertTo-Json was introduced in Powershell 3.0
 
     $Uri = 'http://{0}/hashes' -f $Node.IP
-    return Invoke-RestMethod -Method post -uri $Uri -Body $JSON -ContentType "application/json"
+    return Invoke-RestMethod -Method post -uri $Uri -Body $JSON -ContentType "application/json" # Invoke-RestMethod was introduced in Powershell 3.0
 }
 
 Function Check-TNTNodeHealth {
@@ -20,13 +20,13 @@ Function Check-TNTNodeHealth {
        [parameter(mandatory=$true)][pscustomobject]$Node
     )
 
-    $Uri = 'http://a.chainpoint.org/nodes/{0}' -f $Node.Address
+    $Uri = 'http://b.chainpoint.org/nodes/{0}' -f $Node.Address # At one point you may have queried to many times. Then try another node, a, b or c.
     return (Invoke-RestMethod -Method get -Uri $Uri).recent_audits[0]
 }
 
 $Nodes = Import-CSV -Path $CSVPath -Delimiter ';'
 
-if ($HealthCheck){
+if ($HealthCheck){ # On by default
     foreach ($Node in $Nodes) {
         $Health = Check-TNTNodeHealth -Node $Node
         if ($Health) {
@@ -44,7 +44,7 @@ if ($HealthCheck){
     }
 }
 
-if ($TestHash){
+if ($TestHash){ # If switched, will incur credits for saving a hash to the blockchain
     foreach ($Node in $Nodes) {
         Write-TNTTestHash -Node $Node
     }
